@@ -47,3 +47,28 @@ code {
   background-color: white;
   margin-bottom: 10px;
 }
+
+#page-numbers {
+  list-style: none;
+  display: flex;
+}
+
+#page-numbers > li {
+  margin-right: 0.3em;
+  color: blue;
+  user-select: none;
+  cursor: pointer;
+}
+#detail-box{
+  min-width: 96%;
+  
+  margin-left: 15px;
+}
+.table-striped tbody tr:nth-of-type(odd){
+  background-color: white !important;
+}
+.details{
+  margin-bottom: 20px;
+    margin-right: 20px;
+    width: 118px;
+}
