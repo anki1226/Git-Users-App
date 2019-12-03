@@ -13,12 +13,13 @@ class Dashboard extends Component {
       totalCount: 0,
       subDetails: [],
       subDetailEle: '',
-      hasSubDetailEle : false,
+      hasSubDetailEle: false,
       currentPage: 1,
-      itemsPerPage: 50
-      
+      itemsPerPage: 10,
+      selectedValue: ''
     };
     this.handleClick = this.handleClick.bind(this);
+    this.getsortedData = this.getsortedData.bind(this);
   }
   // componentDidMount() {
   //     getUsers();
@@ -27,28 +28,34 @@ class Dashboard extends Component {
     this.setState({ name: event.target.value });
     const updatedKeyword = event.target.value;
     this.setState({
-      name:updatedKeyword
-    })
+      name: updatedKeyword
+    });
     console.log(updatedKeyword);
-    fetch('https://api.github.com/search/users?q=' + updatedKeyword + '&per_page=50')
-      .then(res => res.json())
-      .then(result => {
-        this.setState({
-          items: result.items,
-          totalCount: result.total_count
+    if (updatedKeyword.length > 5) {
+      fetch(
+        'https://api.github.com/search/users?q=' +
+          updatedKeyword +
+          '&per_page=10'
+      )
+        .then(res => res.json())
+        .then(result => {
+          console.log('First fetch ', result.items);
+          this.setState({
+            items: result.items,
+            totalCount: result.total_count
+          });
         });
-      });
-    console.log(this.state.items);
+      console.log(this.state.items);
+    }
   }
-  showDetails(name,id){
-    
+  showDetails(name, id) {
     //this.state.subDetailEle = '#detail-box-' + id + '';
-   
-    this.getUserDetails(name,id);
-    $('#btn-' + id + '').textContent = "Collapse";
+
+    this.getUserDetails(name, id);
+    $('#btn-' + id + '').textContent = 'Collapse';
   }
   getUserDetails(login, id) {
-    //debugger;    
+    //debugger;
     fetch('https://api.github.com/users/' + login + '/repos')
       .then(res => res.json())
       .then(result => {
@@ -58,16 +65,16 @@ class Dashboard extends Component {
         // for (let user of result) {
         //   <UserDetail id={user.id} />;
         // }
-        
+
         this.setState({
           subDetails: result,
-          hasSubDetailEle : true,
-          subDetailEle : 'detail-box-' + id + ''
+          hasSubDetailEle: true,
+          subDetailEle: 'detail-box-' + id + ''
         });
         //$('#detail-box-' + id + '').toggle();
         console.log('after get');
         console.log(this.state.subDetails);
-        
+
         //$(".user-details").collapse=true;
       });
   }
@@ -75,37 +82,70 @@ class Dashboard extends Component {
     this.setState({
       currentPage: Number(event.target.id)
     });
-    fetch('https://api.github.com/search/users?q=' + this.state.name + '&page='+Number(event.target.id)+'&per_page=50')//&sort=stars&order=desc&page=1&per_page=10
-    .then(res => res.json())
-    .then(result => {
-      console.log("result");
-      console.log(result);
-      this.setState({
-        items: result.items,
-        
+    fetch(
+      'https://api.github.com/search/users?q=' +
+        this.state.name +
+        '&page=' +
+        Number(event.target.id) +
+        '&per_page=50'
+    ) //&sort=stars&order=desc&page=1&per_page=10
+      .then(res => res.json())
+      .then(result => {
+        console.log('result');
+        console.log(result);
+        this.setState({
+          items: result.items
+        });
       });
-      
-    })
-    
-    
   }
-// getsortedData(cat,order){
-//   fetch('https://api.github.com/search/users?q=' + this.state.name + '&sort='+cat+'&order='+order+'')//&sort=stars&order=desc&page=1&per_page=10
-//     .then(res => res.json())
-//     .then(result => {
-//       // this.setState({
-//       //   items: result.items,
-        
-//       // });
-//     })
-// }
+  getsortedData(event) {
+    let cat, order;
+    if (event.target.value == 'Login-desc') {
+      cat = 'login';
+      order = 'desc';
+    }
+    if (event.target.value == 'Login-asc') {
+      cat = 'login';
+      order = 'asc';
+    }
+    if (event.target.value == 'Score-desc') {
+      cat = 'score';
+      order = 'desc';
+    }
+    if (event.target.value == 'Score-asc') {
+      cat = 'score';
+      order = 'asc';
+    }
+    this.setState({ selectedValue: event.target.value });
+    console.log('Hello' + this.state.name);
+    if (this.state.name) {
+      fetch(
+        //https://api.github.com/search/users?q=kit+in:login&sort=followers&order=asc
+        //https://developer.github.com/v3/search/#search-users
+        'https://api.github.com/search/users?q=' +
+          this.state.name +
+          '&sort=' +
+          cat +
+          '&order=' +
+          order +
+          ''
+      ) //&sort=stars&order=desc&page=1&per_page=10
+        .then(res => res.json())
+        .then(result => {
+          console.log('new result ', result);
+          this.setState({
+            items: result.items
+          });
+        });
+    }
+  }
   render() {
-    const { totalCount, currentPage, itemsPerPage,items  } = this.state;
-let initialtext = "Details";
+    const { totalCount, currentPage, itemsPerPage, items } = this.state;
+    let initialtext = 'Details';
     // Logic for displaying todos
-   // const indexOfLastTodo = currentPage * itemsPerPage;
-   // const indexOfFirstTodo = indexOfLastTodo - itemsPerPage;
-   // const currentitems = items.slice(indexOfFirstTodo, indexOfLastTodo);
+    // const indexOfLastTodo = currentPage * itemsPerPage;
+    // const indexOfFirstTodo = indexOfLastTodo - itemsPerPage;
+    // const currentitems = items.slice(indexOfFirstTodo, indexOfLastTodo);
     const pageNumbers = [];
     for (let i = 1; i <= Math.ceil(totalCount / itemsPerPage); i++) {
       pageNumbers.push(i);
@@ -113,11 +153,7 @@ let initialtext = "Details";
 
     const renderPageNumbers = pageNumbers.map(number => {
       return (
-        <li
-          key={number}
-          id={number}
-          onClick={this.handleClick}
-        >
+        <li key={number} id={number} onClick={this.handleClick}>
           {number}
         </li>
       );
@@ -130,15 +166,15 @@ let initialtext = "Details";
             <div className="row">
               <div className="col-md-2"></div>
               <div className="col-md-3">
-                <select className="select-box form-control">
-                <option>Sort By Name(A-Z)</option>
-                  <option> Sort By Name(Z-A)</option>
-                  <option>Sort By Rank asending</option>
-                  <option>Sort By Rank decending</option>
-                  {/* <option onClick={this.getsortedData('login','asc')}>Sort By Name(A-Z)</option>
-                  <option onClick={this.getsortedData('login','desc')}>Sort By Name(Z-A)</option>
-                  <option onClick={this.getsortedData('score','asc')}>Sort By Rank asending</option>
-                  <option onClick={this.getsortedData('score','desc')}>Sort By Rank decending</option> */}
+                <select
+                  className="select-box form-control"
+                  onChange={this.getsortedData}
+                  value={this.state.selectedValue}
+                >
+                  <option value="Login-asc">Sort By Name(A-Z)</option>
+                  <option value="Login-desc">Sort By Name(Z-A)</option>
+                  <option value="Score-asc">Sort By Rank asending</option>
+                  <option value="Score-desc">Sort By Rank decending</option>
                 </select>
               </div>
               <div className="col-md-5">
@@ -165,7 +201,7 @@ let initialtext = "Details";
                 <div className="row vertical-spacer-10"></div>
                 {this.state.items.map((item, i) => (
                   <div key={item.id} className="user-card">
-                    <div className="row" >
+                    <div className="row">
                       <div className="col-md-2">
                         <img
                           src={item.avatar_url}
@@ -176,23 +212,32 @@ let initialtext = "Details";
                       <div className="col-md-8">
                         <div className="card-body">
                           <h5 className="card-title">{item.login}</h5>
-                          <p className="card-text">Repository : {item.url}</p>
                           <p className="card-text">
-                            Repository Url : {item.repos_urlurl}
+                            Profile URL : {item.html_url}
+                          </p>
+                          <p className="card-text">score : {item.score}</p>
+                          <p className="card-text">
+                            Repos URL : {item.repos_url}
                           </p>
                         </div>
                       </div>
                       <div className="col-md-2 text-right">
-                        <button id={'btn-'+item.id} value="Details"
+                        <button
+                          id={'btn-' + item.id}
+                          value="Details"
                           className="details btn btn-outline-primary"
-                          onClick={() => this.showDetails(item.login,item.id)}
-                        >
-                         
-                        </button>
+                          onClick={() => this.showDetails(item.login, item.id)}
+                        ></button>
                       </div>
-                      
                     </div>
-                    <div className="row">{this.state.hasSubDetailEle && this.state.subDetailEle == ('detail-box-'+item.id) ? <UserDetail data={this.state.subDetails}/> : ''}</div>
+                    <div className="row">
+                      {this.state.hasSubDetailEle &&
+                      this.state.subDetailEle == 'detail-box-' + item.id ? (
+                        <UserDetail data={this.state.subDetails} />
+                      ) : (
+                        ''
+                      )}
+                    </div>
                     {/* <div className="row" id={'detail-box-'+item.id}>{(this.state.subDetailEle == ('detail-box-'+item.id) && this.state.hasSubDetailEle) ? this.getUserDetails(item.login, item.id) : ''}</div> */}
                     {/* <div className="row" id={'detail-box-'+item.id}>{this.state.subDetails.map((item, i) => (
                   <div key={item.id}>
@@ -204,9 +249,7 @@ let initialtext = "Details";
             </div>
           </div>
         </div>
-        <ul id="page-numbers">
-          {renderPageNumbers}
-        </ul>
+        <ul id="page-numbers">{renderPageNumbers}</ul>
       </div>
     );
   }
